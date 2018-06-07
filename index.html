@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+        <title>Audio exp 3</title>
+        <meta name="description" content="My App description">
+
+        <style>
+
+            body {
+                font: 1em/1.3 'arial', sans-serif;
+                padding: 1rem;
+                background-color: #000;
+                color: #fff;
+                text-align: center;
+                display: flex;
+                flex-flow: column nowrap;
+                align-items: center;
+                justify-content: space-around;
+            }
+
+            h1 {
+                max-width: 50vh;
+                font-weight: normal;
+                text-transform: uppercase;
+                font-size: 7.5vh;
+                margin: 1rem 0 0;
+                padding: 0;
+            }
+
+            #canvas {
+                width: 100%;
+                max-width: 50vh;
+            }
+
+        </style>
+    </head>
+    <body>
+
+        <h1>Joy division</h1>
+
+        <canvas id="canvas" height="1000" width="666"></canvas>
+
+        <script>
+
+            if (navigator.mediaDevices) {
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(function(stream) {
+
+                        var actx = new (window.AudioContext || window.webkitAudioContext)(), // define audio context
+                            mic = actx.createMediaStreamSource(stream),
+                            analyser = actx.createAnalyser(),
+                            el = document.getElementById('display');
+                        
+                        mic.connect(analyser);
+                        analyser.fftSize = 4096;
+
+                        var bufferLength = analyser.frequencyBinCount,
+                            dataArray = new Uint8Array(bufferLength),
+                            freqResolution = actx.sampleRate / bufferLength;
+
+                        // Get canvas context
+                        var c = document.getElementById("canvas"),
+                            ctx = c.getContext("2d"),
+                            c_width = c.width,
+                            c_height = c.height,
+                            lines = 32,
+                            buf_cut = bufferLength / lines;
+                            slice_w = c_width / (buf_cut + 5),
+                            slice_h = c_height / lines;
+
+                        ctx.rect(0,0,c_width,c_height);
+                        ctx.lineWidth = 2;
+                        ctx.strokeStyle = '#fff';
+
+                        function drawLine(h_adj, values) {
+                            var x = 0;
+                            ctx.beginPath();
+                            ctx.moveTo(x,c_height-h_adj);
+                            x += slice_w*2;
+                            ctx.lineTo(x,c_height-h_adj);
+                            for (var i = 0; i < values.length; i++) {   
+                                x += slice_w;
+                                ctx.lineTo(x,c_height-h_adj-values[i]);
+                            }
+                            x += slice_w;
+                            ctx.lineTo(x,c_height-h_adj);
+                            ctx.lineTo(c_width,c_height-h_adj);
+                            ctx.stroke();
+                        }
+
+
+                        function draw() {
+
+                            var h = 0;
+                                
+                            ctx.clearRect(0,0,c_width,c_height);
+                            requestAnimationFrame(draw);
+                            analyser.getByteFrequencyData(dataArray);
+                            
+                            for(var i = 0; i < bufferLength; i = i + buf_cut) {
+                                var data_vals = dataArray.slice(i, i + buf_cut);
+                                drawLine(h, data_vals);
+                                h = h + slice_h;
+                            };
+
+                        };
+
+                        draw();
+
+                    })
+                    .catch(function(err) {
+                        console.log(err)
+                    })
+            };
+
+        </script>
+
+    </body>
+</html>
