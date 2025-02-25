@@ -1,0 +1,50 @@
+html,
+body {
+  height: 100%;
+  width: 100%;
+}
+body {
+  font: 1em/1.3 sans-serif;
+  padding: 0;
+  margin: 0;
+  background-color: #000;
+  color: #fff;
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
+  justify-content: space-around;
+}
+
+p {
+  font-weight: 100;
+  text-transform: uppercase;
+  margin: 0;
+  letter-spacing: 0.4vmin;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+}
+
+.uppertext {
+  font-size: 6.6vmin;
+}
+
+.lowertext {
+  font-size: 3.1vmin;
+}
+
+canvas {
+  width: 55vmin; 
+  height: 70vmin;
+  margin: 1vmin 0 2vmin;
+}
+
+.aside {
+  position: absolute;
+  top: 2vmin;
+  right: 2vmin;
+}
+
+.aside svg path {
+  fill: hsla(0,0%,100%,0.5);
+}

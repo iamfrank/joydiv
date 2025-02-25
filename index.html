@@ -6,58 +6,7 @@
   <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
   <title>Audio exp 3</title>
   <meta name="description" content="My App description">
-  <style>
-    html,
-    body {
-      height: 100%;
-      width: 100%;
-    }
-    body {
-      font: 1em/1.3 sans-serif;
-      padding: 0;
-      margin: 0;
-      background-color: #000;
-      color: #fff;
-      display: flex;
-      flex-flow: column nowrap;
-      align-items: center;
-      justify-content: space-around;
-    }
-
-    p {
-      font-weight: 100;
-      text-transform: uppercase;
-      margin: 0;
-      letter-spacing: 0.4vmin;
-      display: flex;
-      flex-flow: row nowrap;
-      justify-content: space-between;
-    }
-
-    .uppertext {
-      font-size: 6.6vmin;
-    }
-
-    .lowertext {
-      font-size: 3.1vmin;
-    }
-
-    canvas {
-      width: 55vmin; 
-      height: 70vmin;
-      margin: 1vmin 0 2vmin;
-    }
-
-    .aside {
-      position: absolute;
-      top: 2vmin;
-      right: 2vmin;
-    }
-
-    .aside svg path {
-      fill: hsla(0,0%,100%,0.5);
-    }
-  </style>
+  <link href="./style.css" rel="stylesheet">
 </head>
 
 <body>
@@ -76,83 +25,7 @@
     </a>
   </div>
 
-  <script>
-
-    function getCSSValue(element, property) {
-      const valueStr = getComputedStyle(element)[property]
-      const numberRgx = /\d+/g
-      return Number(valueStr.match(numberRgx)[0])
-    }
-
-    if (navigator.mediaDevices) {
-      navigator.mediaDevices.getUserMedia({ audio: true })
-      .then(function (stream) {
-
-        const actx = new (window.AudioContext || window.webkitAudioContext)() // define audio context
-        const mic = actx.createMediaStreamSource(stream)
-        const analyser = actx.createAnalyser()
-        const el = document.getElementById('display')
-
-        mic.connect(analyser)
-        analyser.fftSize = 4096
-
-        const bufferLength = analyser.frequencyBinCount
-        const dataArray = new Uint8Array(bufferLength)
-        const freqResolution = actx.sampleRate / bufferLength
-
-        // Get canvas context
-        const c = document.querySelector("canvas")
-        c.width = getCSSValue(c, 'width')
-        c.height = getCSSValue(c, 'height')
-        
-        const ctx = c.getContext("2d")
-        const c_width = c.width
-        const c_height = c.height
-        const lines = c.height / 10
-        const buf_cut = bufferLength / lines
-        const slice_w = c_width / (buf_cut + 5)
-        const slice_h = c_height / lines
-
-        ctx.rect(0, 0, c_width, c_height)
-        ctx.lineWidth = 2
-        ctx.strokeStyle = '#fff'
-        ctx.fillStyle = '#000'
-
-        function drawLine(h_adj, values) {
-          let x = 0
-          ctx.beginPath()
-          ctx.moveTo(x, c_height - h_adj)
-          ctx.lineTo(x, c_height - h_adj)
-          for (let i = 0; i < values.length; i++) {
-            x += slice_w
-            ctx.lineTo(x, c_height - h_adj - values[i])
-          }
-          ctx.lineTo(c_width, c_height - h_adj)
-          ctx.fill()
-          ctx.stroke()
-        }
-
-        function draw() {
-          let h = c_height
-          ctx.clearRect(0, 0, c_width, c_height)
-          analyser.getByteFrequencyData(dataArray)
-          for (let i = bufferLength; i > 0; i = i - buf_cut) {
-            var data_vals = dataArray.slice(i, i + buf_cut)
-            drawLine(h, data_vals)
-            h = h - slice_h
-          }
-          requestAnimationFrame(draw)
-        }
-
-        draw()
-
-      })
-      .catch(function (err) {
-        console.log(err)
-      })
-    }
-
-  </script>
+  <script src="./script.js"></script>
 
 </body>
 
