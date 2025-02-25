@@ -28,25 +28,24 @@
       font-weight: 100;
       text-transform: uppercase;
       margin: 0;
-      letter-spacing: 0.5vmin;
+      letter-spacing: 0.4vmin;
       display: flex;
       flex-flow: row nowrap;
       justify-content: space-between;
     }
 
     .uppertext {
-      font-size: 6.5vmin;
+      font-size: 6.6vmin;
     }
 
     .lowertext {
-      font-size: 4.5vmin;
+      font-size: 3.1vmin;
     }
 
     canvas {
-      width: auto;
+      width: 55vmin; 
       height: 70vmin;
-      aspect-ratio: 0.75 / 1;
-      margin: 0 0 1vmin;
+      margin: 1vmin 0 2vmin;
     }
 
     .aside {
@@ -65,8 +64,8 @@
 
   <div class="joy">
     <p class="uppertext"><span>Joydiv</span> <span>vision</span></p>
-    <canvas height="1000" width="750"></canvas>
-    <p class="lowertext"><span>Turn</span> <span>on</span> <span>your</span> <span>mic</span></p>
+    <canvas></canvas>
+    <p class="lowertext"><span>Turn</span> <span>on</span> <span>your</span> <span>microphone</span></p>
   </div>
 
   <div class="aside">
@@ -79,76 +78,79 @@
 
   <script>
 
+    function getCSSValue(element, property) {
+      const valueStr = getComputedStyle(element)[property]
+      const numberRgx = /\d+/g
+      return Number(valueStr.match(numberRgx)[0])
+    }
+
     if (navigator.mediaDevices) {
       navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(function (stream) {
+      .then(function (stream) {
 
-          var actx = new (window.AudioContext || window.webkitAudioContext)(), // define audio context
-            mic = actx.createMediaStreamSource(stream),
-            analyser = actx.createAnalyser(),
-            el = document.getElementById('display');
+        const actx = new (window.AudioContext || window.webkitAudioContext)() // define audio context
+        const mic = actx.createMediaStreamSource(stream)
+        const analyser = actx.createAnalyser()
+        const el = document.getElementById('display')
 
-          mic.connect(analyser);
-          analyser.fftSize = 4096;
+        mic.connect(analyser)
+        analyser.fftSize = 4096
 
-          var bufferLength = analyser.frequencyBinCount,
-            dataArray = new Uint8Array(bufferLength),
-            freqResolution = actx.sampleRate / bufferLength;
+        const bufferLength = analyser.frequencyBinCount
+        const dataArray = new Uint8Array(bufferLength)
+        const freqResolution = actx.sampleRate / bufferLength
 
-          // Get canvas context
-          var c = document.querySelector("canvas"),
-            ctx = c.getContext("2d"),
-            c_width = c.width,
-            c_height = c.height,
-            lines = 32,
-            buf_cut = bufferLength / lines;
-          slice_w = c_width / (buf_cut + 5),
-            slice_h = c_height / lines;
+        // Get canvas context
+        const c = document.querySelector("canvas")
+        c.width = getCSSValue(c, 'width')
+        c.height = getCSSValue(c, 'height')
+        
+        const ctx = c.getContext("2d")
+        const c_width = c.width
+        const c_height = c.height
+        const lines = c.height / 10
+        const buf_cut = bufferLength / lines
+        const slice_w = c_width / (buf_cut + 5)
+        const slice_h = c_height / lines
 
-          ctx.rect(0, 0, c_width, c_height);
-          ctx.lineWidth = 2;
-          ctx.strokeStyle = '#fff';
+        ctx.rect(0, 0, c_width, c_height)
+        ctx.lineWidth = 2
+        ctx.strokeStyle = '#fff'
+        ctx.fillStyle = '#000'
 
-          function drawLine(h_adj, values) {
-            var x = 0;
-            ctx.beginPath();
-            ctx.moveTo(x, c_height - h_adj);
-            x += slice_w * 2;
-            ctx.lineTo(x, c_height - h_adj);
-            for (var i = 0; i < values.length; i++) {
-              x += slice_w;
-              ctx.lineTo(x, c_height - h_adj - values[i]);
-            }
-            x += slice_w;
-            ctx.lineTo(x, c_height - h_adj);
-            ctx.lineTo(c_width, c_height - h_adj);
-            ctx.stroke();
+        function drawLine(h_adj, values) {
+          let x = 0
+          ctx.beginPath()
+          ctx.moveTo(x, c_height - h_adj)
+          ctx.lineTo(x, c_height - h_adj)
+          for (let i = 0; i < values.length; i++) {
+            x += slice_w
+            ctx.lineTo(x, c_height - h_adj - values[i])
           }
+          ctx.lineTo(c_width, c_height - h_adj)
+          ctx.fill()
+          ctx.stroke()
+        }
 
+        function draw() {
+          let h = c_height
+          ctx.clearRect(0, 0, c_width, c_height)
+          analyser.getByteFrequencyData(dataArray)
+          for (let i = bufferLength; i > 0; i = i - buf_cut) {
+            var data_vals = dataArray.slice(i, i + buf_cut)
+            drawLine(h, data_vals)
+            h = h - slice_h
+          }
+          requestAnimationFrame(draw)
+        }
 
-          function draw() {
+        draw()
 
-            var h = 0;
-
-            ctx.clearRect(0, 0, c_width, c_height);
-            requestAnimationFrame(draw);
-            analyser.getByteFrequencyData(dataArray);
-
-            for (var i = 0; i < bufferLength; i = i + buf_cut) {
-              var data_vals = dataArray.slice(i, i + buf_cut);
-              drawLine(h, data_vals);
-              h = h + slice_h;
-            };
-
-          };
-
-          draw();
-
-        })
-        .catch(function (err) {
-          console.log(err)
-        })
-    };
+      })
+      .catch(function (err) {
+        console.log(err)
+      })
+    }
 
   </script>
 
